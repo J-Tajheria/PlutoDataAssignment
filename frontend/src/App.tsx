@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import './App.css'
 import Dropdown from './components/dropdown';
+import HistoricalGames from './components/HistoricalGames';
 
 interface Item {
   id?: number
@@ -40,11 +41,9 @@ function App() {
             Custom Match Ups
           </button>
         </div>
-        {showHistoricalGames && (
-          <div>
-            HELLO DUDE
-          </div>
-        )}
+                 {showHistoricalGames && (
+           <HistoricalGames />
+         )}
         {showCustomMatchUps && (
           <div>
             <Dropdown />
