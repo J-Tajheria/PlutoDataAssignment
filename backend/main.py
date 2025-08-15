@@ -215,37 +215,5 @@ async def get_simulations(team_id: Optional[int] = None, limit: int = 50):
     finally:
         conn.close()
 
-@app.get("/api/items", response_model=List[Item])
-async def get_items():
-    """Get all items"""
-    return items_db
-
-@app.post("/api/items", response_model=Item)
-async def create_item(item: Item):
-    """Create a new item"""
-    global item_id_counter
-    item.id = item_id_counter
-    item_id_counter += 1
-    items_db.append(item)
-    return item
-
-@app.get("/api/items/{item_id}", response_model=Item)
-async def get_item(item_id: int):
-    """Get a specific item by ID"""
-    for item in items_db:
-        if item.id == item_id:
-            return item
-    raise HTTPException(status_code=404, detail="Item not found")
-
-@app.delete("/api/items/{item_id}")
-async def delete_item(item_id: int):
-    """Delete an item by ID"""
-    global items_db
-    for i, item in enumerate(items_db):
-        if item.id == item_id:
-            deleted_item = items_db.pop(i)
-            return {"message": f"Item {deleted_item.name} deleted successfully"}
-    raise HTTPException(status_code=404, detail="Item not found")
-
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
