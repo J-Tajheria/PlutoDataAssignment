@@ -14,6 +14,7 @@ type Option = {
 
 const DropdownDownMenu: React.FC<DropdownProps> = ({ label, options, onSelect }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [selectedOption, setSelectedOption] = useState<Option | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -29,35 +30,41 @@ const DropdownDownMenu: React.FC<DropdownProps> = ({ label, options, onSelect })
         };
     }, []);
 
-    const handleSelect = (value: string) => {
-        onSelect?.(value);
+    const handleSelect = (option: Option) => {
+        setSelectedOption(option);
+        onSelect?.(option.value);
         setIsOpen(false);
     };
 
+    // Display selected option label or fallback to original label
+    const displayText = selectedOption ? selectedOption.label : label;
+
     return (
-        <div ref={dropdownRef} className="relative inline-block text-left">
+        <div ref={dropdownRef} className="relative inline-block text-left w-full">
             <button 
                 onClick={() => setIsOpen(!isOpen)}
-                className="inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="inline-flex justify-center w-full px-4 py-3 text-sm font-medium text-gray-700 bg-white rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
             >
-                {label}
+                {displayText}
             </button>
             {isOpen && (
-                <div className="absolute right-0 z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
-                    <div className="py-1">
+                <div className="absolute right-0 z-10 w-full mt-2 bg-white rounded-md shadow-lg max-h-60 overflow-y-auto">
+                    <div className="py-2">
                         {options.map((option) =>
                             option.href ? (
                                 <a
                                     key={option.value}
                                     href={option.href}
                                     onClick={() => setIsOpen(false)}
+                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                                 >
                                     {option.label}
                                 </a>
                         ) : (
                             <button
                                 key={option.value}
-                                onClick={() => handleSelect(option.value)}
+                                onClick={() => handleSelect(option)}
+                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                             >
                                 {option.label}
                             </button>
