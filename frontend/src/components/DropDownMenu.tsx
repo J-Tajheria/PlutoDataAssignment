@@ -1,20 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { DropdownOption } from '../types';
 
 type DropdownProps = {
     label: string;
-    options: Option[];
+    options: DropdownOption[];
     onSelect?: (option: string) => void;
-}
-
-type Option = {
-    label: string;
-    value: string;
-    href?: string;
 }
 
 const DropdownDownMenu: React.FC<DropdownProps> = ({ label, options, onSelect }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [selectedOption, setSelectedOption] = useState<Option | null>(null);
+    const [selectedOption, setSelectedOption] = useState<DropdownOption | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -30,7 +25,7 @@ const DropdownDownMenu: React.FC<DropdownProps> = ({ label, options, onSelect })
         };
     }, []);
 
-    const handleSelect = (option: Option) => {
+    const handleSelect = (option: DropdownOption) => {
         setSelectedOption(option);
         onSelect?.(option.value);
         setIsOpen(false);
@@ -43,12 +38,12 @@ const DropdownDownMenu: React.FC<DropdownProps> = ({ label, options, onSelect })
         <div ref={dropdownRef} className="relative inline-block text-left w-full">
             <button 
                 onClick={() => setIsOpen(!isOpen)}
-                className="inline-flex justify-center w-full px-4 py-3 text-sm font-medium text-gray-700 bg-white rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                className="inline-flex justify-center w-full px-4 py-2.5 text-sm font-medium text-slate-700 bg-white/90 backdrop-blur-sm rounded-xl shadow-sm hover:bg-white hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-all duration-200"
             >
-                {displayText}
+                <span className="truncate">{displayText}</span>
             </button>
             {isOpen && (
-                <div className="absolute right-0 z-10 w-full mt-2 bg-white rounded-md shadow-lg max-h-60 overflow-y-auto">
+                <div className="absolute right-0 z-10 w-full mt-2 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg max-h-60 overflow-y-auto">
                     <div className="py-2">
                         {options.map((option) =>
                             option.href ? (
@@ -56,7 +51,7 @@ const DropdownDownMenu: React.FC<DropdownProps> = ({ label, options, onSelect })
                                     key={option.value}
                                     href={option.href}
                                     onClick={() => setIsOpen(false)}
-                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                                    className="block px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-150"
                                 >
                                     {option.label}
                                 </a>
@@ -64,7 +59,7 @@ const DropdownDownMenu: React.FC<DropdownProps> = ({ label, options, onSelect })
                             <button
                                 key={option.value}
                                 onClick={() => handleSelect(option)}
-                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                                className="block w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors duration-150"
                             >
                                 {option.label}
                             </button>

@@ -4,17 +4,7 @@ import './App.css'
 import DropDownMenu from './components/DropDownMenu';
 import HistoricalGames from './components/HistoricalGames';
 import Histogram from './components/Histogram';
-
-interface Team {
-  id: number
-  name: string
-}
-
-interface Venue {
-  id: number;
-  name: string;
-  home_multiplier: number;
-}
+import { Team, Venue, HistogramDataPoint, MatchDetails } from './types';
 
 function App() {
   const [showHistoricalGames, setShowHistoricalGames] = useState(false);
@@ -28,9 +18,9 @@ function App() {
   const [selectedVenue, setSelectedVenue] = useState<string>('');
   
   // Simulation data state
-  const [simulationData, setSimulationData] = useState<any[]>([]);
+  const [simulationData, setSimulationData] = useState<HistogramDataPoint[]>([]);
   const [isSimulating, setIsSimulating] = useState(false);
-  const [matchDetails, setMatchDetails] = useState<any>(null);
+  const [matchDetails, setMatchDetails] = useState<MatchDetails | null>(null);
   const [hasAttemptedSimulation, setHasAttemptedSimulation] = useState(false);
 
   const API_BASE_URL = 'http://localhost:8000';
@@ -42,24 +32,20 @@ function App() {
 
   const fetchVenues = async () => {
     try {
-        const response = await axios.get(`${API_BASE_URL}/api/venues`);
-        setVenues(response.data);
-        // setError(null);
-      } catch (err) {
-        // setError('Failed to fetch venues');
-        console.error('Error fetching venues:', err);
-      }
+      const response = await axios.get(`${API_BASE_URL}/api/venues`);
+      setVenues(response.data);
+    } catch (err) {
+      console.error('Error fetching venues:', err);
+    }
   }
 
   const fetchTeams = async () => {
     try {
-        const response = await axios.get(`${API_BASE_URL}/api/teams`);
-        setTeams(response.data);
-        // setError(null);
-      } catch (err) {
-        // setError('Failed to fetch teams');
-        console.error('Error fetching teams:', err);
-      }
+      const response = await axios.get(`${API_BASE_URL}/api/teams`);
+      setTeams(response.data);
+    } catch (err) {
+      console.error('Error fetching teams:', err);
+    }
   }
 
   // Check if all dropdowns are selected
@@ -121,28 +107,45 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-8 px-4 text-center shadow-lg">
-        <h1 className="text-4xl font-bold mb-2">PlutoData Assignment</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100">
+      <header className="bg-gradient-to-r from-slate-600 via-slate-700 to-slate-800 text-white py-12 px-6 text-center shadow-xl">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-5xl font-light mb-3 tracking-tight">Pluto Data</h1>
+          <p className="text-slate-300 text-lg font-light">Sports Analytics & Simulation Platform</p>
+        </div>
       </header>
-        <main className="max-w-6xl mx-auto px-4 py-8">
+      
+      <main className="max-w-7xl mx-auto px-6 py-12">
         {/* Navigation buttons */}
-        <div className='flex justify-center items-center mb-8 p-4 rounded-lg' style={{ gap: '3rem' }}>
-          <button className="text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-400 transition-colors font-semibold border-2 border-gray-400" 
-           onClick={handleHistoricalGamesClick}>
+        <div className='flex justify-center items-center mb-12 p-6 rounded-2xl bg-white/60 backdrop-blur-sm shadow-lg' style={{ gap: '2rem' }}>
+          <button 
+            className={`px-10 py-5 rounded-xl font-medium transition-all duration-300 text-lg ${
+              showHistoricalGames 
+                ? 'bg-blue-600 text-white shadow-lg' 
+                : 'bg-white/80 text-blue-700 hover:bg-white hover:shadow-md'
+            }`}
+            onClick={handleHistoricalGamesClick}
+          >
             Historical Games
           </button>
-          <button className="text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-400 transition-colors font-semibold border-2 border-gray-400"
-           onClick={handleCustomMatchUpsClick}>
+          <button 
+            className={`px-10 py-5 rounded-xl font-medium transition-all duration-300 text-lg ${
+              showCustomMatchUps 
+                ? 'bg-blue-600 text-white shadow-lg' 
+                : 'bg-white/80 text-blue-700 hover:bg-white hover:shadow-md'
+            }`}
+            onClick={handleCustomMatchUpsClick}
+          >
             Custom Match Ups
           </button>
         </div>
         
-         {showHistoricalGames && (
-           <HistoricalGames />
-         )}
+        {showHistoricalGames && (
+          <HistoricalGames />
+        )}
+        
         {showCustomMatchUps && (
-          <div className="flex flex-col items-center space-y-8">
+          <div className="flex flex-col items-center space-y-12">
             <section className='custom-matchups-section'>
               <div>
                <DropDownMenu 
@@ -170,23 +173,23 @@ function App() {
             
             {/* Enter button - only show when all options are selected */}
             {allOptionsSelected && (
-              <div>
-              <div className="p-6">
-                <button 
-                  onClick={handleEnterClick}
-                  className="bg-gradient-to-r from-green-500 to-green-600 text-white px-12 py-4 rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 font-bold text-xl shadow-lg hover:shadow-xl transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300 border-2 border-green-700"
-                >
-                  🚀 Enter Match
-                </button>
-              </div>
-              <div>
-                <Histogram 
-                  data={simulationData} 
-                  isLoading={isSimulating}
-                  matchDetails={matchDetails}
-                  hasAttemptedSimulation={hasAttemptedSimulation}
-                />
-              </div>
+              <div className="w-full flex flex-col items-center">
+                <div className="text-center mb-8">
+                  <button 
+                    onClick={handleEnterClick}
+                    className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-16 py-5 rounded-2xl hover:from-emerald-600 hover:to-teal-700 transition-all duration-300 font-semibold text-xl shadow-xl hover:shadow-2xl transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-emerald-300/50"
+                  >
+                    Run Simulation
+                  </button>
+                </div>
+                <div className="max-w-4xl w-full">
+                  <Histogram 
+                    data={simulationData} 
+                    isLoading={isSimulating}
+                    matchDetails={matchDetails}
+                    hasAttemptedSimulation={hasAttemptedSimulation}
+                  />
+                </div>
               </div>
             )}
           </div>

@@ -1,13 +1,18 @@
-/* Custom styles that complement Tailwind */
+/* Modern, clean styles that complement Tailwind */
 
-/* Custom Match Ups Section - Override global styles */
+/* Custom Match Ups Section - Modern card design */
 .custom-matchups-section {
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
-  gap: 2.5rem !important;
-  padding: 1.5rem !important;
-  border-radius: 0.5rem !important;
+  gap: 2rem !important;
+  padding: 2rem !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(10px) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  margin-top: 3rem !important;
+  margin-bottom: 3rem !important;
 }
 
 .custom-matchups-section > div {
@@ -15,34 +20,21 @@
   padding: 0.5rem !important;
 }
 
-/* Override global button styles for our custom buttons */
-.bg-gray-300,
-.bg-green-600 {
-  background-color: inherit !important;
-  border: inherit !important;
-  padding: inherit !important;
-  font-size: inherit !important;
-  font-weight: inherit !important;
-  font-family: inherit !important;
-  cursor: pointer !important;
-  transition: inherit !important;
+/* Histogram card - matching dropdown styling */
+.histogram-card {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(10px) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  padding: 2rem !important;
 }
 
-/* Navigation buttons - ensure borders show up */
-.bg-gray-300.border-2 {
-  border: 2px solid #9ca3af !important;
-  background-color: #d1d5db !important;
-}
-
-/* Games grid - override for historical games */
+/* Games grid - modern responsive design */
 .games-grid {
   display: grid !important;
   grid-template-columns: repeat(1, 1fr) !important;
-  gap: 1rem !important;
-  margin-left: 1rem !important;
-  margin-right: 1rem !important;
-  margin-bottom: 1rem !important;
-  margin-top: 1rem !important;
+  gap: 1.5rem !important;
+  margin: 1.5rem !important;
 }
 
 @media (min-width: 640px) {
@@ -63,6 +55,20 @@
   }
 }
 
+/* Modern card styles */
+.modern-card {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  transition: all 0.3s ease-in-out !important;
+}
+
+.modern-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
 /* Ensure proper z-index for dropdowns */
 .relative {
   position: relative;
@@ -76,7 +82,8 @@
   z-index: 10;
 }
 
-/* Ensure proper text rendering */
+/* Modern box model and transitions */
 * {
   box-sizing: border-box;
+  transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, transform 0.2s ease-in-out;
 }
