@@ -7,11 +7,16 @@ type DropdownProps = {
     onSelect?: (option: string) => void;
 }
 
+/**
+ * Custom dropdown menu component
+ * Handles selection, outside clicks, and empty states
+ */
 const DropdownDownMenu: React.FC<DropdownProps> = ({ label, options, onSelect }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedOption, setSelectedOption] = useState<DropdownOption | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
+    // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -25,6 +30,10 @@ const DropdownDownMenu: React.FC<DropdownProps> = ({ label, options, onSelect })
         };
     }, []);
 
+    /**
+     * Handle option selection
+     * Updates selected option and calls onSelect callback
+     */
     const handleSelect = (option: DropdownOption) => {
         setSelectedOption(option);
         onSelect?.(option.value);
@@ -33,6 +42,20 @@ const DropdownDownMenu: React.FC<DropdownProps> = ({ label, options, onSelect })
 
     // Display selected option label or fallback to original label
     const displayText = selectedOption ? selectedOption.label : label;
+
+    // Handle empty options
+    if (!options || options.length === 0) {
+        return (
+            <div className="relative inline-block text-left w-full">
+                <button 
+                    disabled
+                    className="inline-flex justify-center w-full px-4 py-2.5 text-sm font-medium text-slate-400 bg-slate-100 rounded-xl cursor-not-allowed"
+                >
+                    <span className="truncate">No options available</span>
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div ref={dropdownRef} className="relative inline-block text-left w-full">

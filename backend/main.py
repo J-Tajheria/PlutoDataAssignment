@@ -5,9 +5,10 @@ from typing import List, Optional
 import uvicorn
 import sqlite3
 
+# FastAPI application setup
 app = FastAPI(title="PlutoData API", version="1.0.0")
 
-# CORS middleware configuration
+# CORS middleware configuration for frontend communication
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://localhost:3000"],  # React dev servers
@@ -18,11 +19,12 @@ app.add_middleware(
 
 # Database connection function
 def get_db_connection():
+    """Create and return a database connection with row factory for named access"""
     conn = sqlite3.connect('plutodata.db')
     conn.row_factory = sqlite3.Row  # This allows accessing columns by name
     return conn
 
-# Pydantic models
+# Pydantic models for request/response validation
 class Item(BaseModel):
     id: Optional[int] = None
     name: str
@@ -38,7 +40,7 @@ class Team(BaseModel):
 class Venue(BaseModel):
     id: int
     name: str
-    home_multiplier: float
+    home_multiplier: float  # Multiplier for home team advantage
 
 class Game(BaseModel):
     id: int
@@ -55,20 +57,17 @@ class Simulation(BaseModel):
     results: int
     team_name: Optional[str] = None
 
-# Add this model for the request body
+# Request model for simulation endpoint
 class SimulationRequest(BaseModel):
-    team_a: int
-    team_b: int
-    venue: int
+    team_a: int  # Home team ID
+    team_b: int  # Away team ID
+    venue: int   # Venue ID
 
 # In-memory storage (replace with database in production)
 items_db = []
 item_id_counter = 1
 
-# get all historical games
-#  get team names A
-#  get team names B
-#  GET VENUES
+# API Endpoints
 
 @app.get("/")
 async def root():
@@ -77,7 +76,7 @@ async def root():
 
 @app.get("/api/venues", response_model=List[Venue])
 async def get_venues():
-    """Get all venues from the database"""
+    """Get all venues from the database with their home advantage multipliers"""
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
@@ -114,10 +113,14 @@ async def get_venue(venue_id: int):
 
 @app.get("/api/games")
 async def get_games():
-    """Get all historical games with simulated results and venue effects"""
+    """
+    Get all historical games with simulated results and venue effects.
+    This endpoint combines game data with team simulation results and applies venue multipliers.
+    """
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
+        # Get games with venue information
         cursor.execute("""
             SELECT g.home_team, g.away_team, g.date, g.venue_id, v.name as venue_name, v.home_multiplier
             FROM games g
@@ -136,7 +139,7 @@ async def get_games():
             away_team_name = game["away_team"]
             venue_multiplier = game["home_multiplier"]
             
-            # Get team IDs
+            # Get team IDs for simulation lookup
             home_team_id = teams.get(home_team_name)
             away_team_id = teams.get(away_team_name)
             
@@ -154,9 +157,10 @@ async def get_games():
                 home_scores = []
                 away_scores = []
                 
+                # Simulate all possible matchups between teams
                 for home_score in home_simulations:
                     for away_score in away_simulations:
-                        # Apply venue multiplier to home team
+                        # Apply venue multiplier to home team 
                         adjusted_home_score = home_score * venue_multiplier
                         adjusted_away_score = away_score
                         
@@ -231,19 +235,23 @@ async def get_team(team_id: int):
 
 @app.post("/api/simulations/simulate-match")
 async def simulate_match(simulation_request: SimulationRequest):
+    """
+    Run a simulation between two teams at a specific venue.
+    Applies venue multiplier to home team and generates histogram data.
+    """
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
         
-        # Get team A simulation results
+        # Get team A simulation results (home team)
         cursor.execute("SELECT results FROM simulations WHERE team_id = ?", (simulation_request.team_a,))
         team_a_results = [row[0] for row in cursor.fetchall()]
         
-        # Get team B simulation results
+        # Get team B simulation results (away team)
         cursor.execute("SELECT results FROM simulations WHERE team_id = ?", (simulation_request.team_b,))
         team_b_results = [row[0] for row in cursor.fetchall()]
         
-        # Get venue data
+        # Get venue data for home advantage multiplier
         cursor.execute("SELECT name, home_multiplier FROM venues WHERE id = ?", (simulation_request.venue,))
         venue_data = cursor.fetchone()
         if not venue_data:
@@ -251,7 +259,7 @@ async def simulate_match(simulation_request: SimulationRequest):
         
         venue_name, home_multiplier = venue_data
         
-        # Get team names
+        # Get team names for display
         cursor.execute("SELECT name FROM teams WHERE id = ?", (simulation_request.team_a,))
         team_a_name = cursor.fetchone()[0]
         
@@ -265,6 +273,7 @@ async def simulate_match(simulation_request: SimulationRequest):
         home_wins = 0
         total_simulations = 0
         
+        # Simulate all possible matchups between the two teams
         for team_a_score in team_a_results:
             for team_b_score in team_b_results:
                 # Apply home multiplier to team A (home team)
@@ -289,6 +298,7 @@ async def simulate_match(simulation_request: SimulationRequest):
         
         # Generate histogram data for both teams
         def generate_team_histogram(scores, team_name):
+            """Generate histogram data from team scores"""
             if not scores:
                 return []
             
@@ -303,7 +313,7 @@ async def simulate_match(simulation_request: SimulationRequest):
                 bin_key = int(score // bin_size) * bin_size
                 bins[bin_key] = bins.get(bin_key, 0) + 1
             
-            # Format for histogram
+            # Format for histogram display
             histogram_data = []
             for i in range(int(min_score - (min_score % bin_size)), int(max_score + bin_size), bin_size):
                 range_label = f"{i}-{i + bin_size - 1}"
@@ -320,13 +330,13 @@ async def simulate_match(simulation_request: SimulationRequest):
         combined_histogram = []
         all_ranges = set()
         
-        # Collect all ranges
+        # Collect all score ranges from both teams
         for item in home_histogram:
             all_ranges.add(item["range"])
         for item in away_histogram:
             all_ranges.add(item["range"])
         
-        # Create combined data
+        # Create combined data for chart display
         for range_label in sorted(all_ranges):
             home_count = next((item["count"] for item in home_histogram if item["range"] == range_label), 0)
             away_count = next((item["count"] for item in away_histogram if item["range"] == range_label), 0)
@@ -353,12 +363,13 @@ async def simulate_match(simulation_request: SimulationRequest):
 
 @app.get("/api/simulations", response_model=List[Simulation])
 async def get_simulations(team_id: Optional[int] = None, limit: int = 50):
-    """Get simulations with optional team filter"""
+    """Get simulations with optional team filter and limit"""
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
         
         if team_id:
+            # Get simulations for specific team
             query = """
                 SELECT s.id, s.team_id, s.simulation_run, s.results, t.name as team_name
                 FROM simulations s
@@ -369,6 +380,7 @@ async def get_simulations(team_id: Optional[int] = None, limit: int = 50):
             """
             cursor.execute(query, (team_id, limit))
         else:
+            # Get all simulations
             query = """
                 SELECT s.id, s.team_id, s.simulation_run, s.results, t.name as team_name
                 FROM simulations s
@@ -392,5 +404,6 @@ async def get_simulations(team_id: Optional[int] = None, limit: int = 50):
     finally:
         conn.close()
 
+# Start the server
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

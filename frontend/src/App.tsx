@@ -7,55 +7,75 @@ import Histogram from './components/Histogram';
 import { Team, Venue, HistogramDataPoint, MatchDetails } from './types';
 
 function App() {
+  // Navigation state
   const [showHistoricalGames, setShowHistoricalGames] = useState(false);
   const [showCustomMatchUps, setShowCustomMatchUps] = useState(false);
+  
+  // Data from API
   const [venues, setVenues] = useState<Venue[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   
-  // Track selected values for dropdowns
+  // User selections for simulation
   const [selectedTeamA, setSelectedTeamA] = useState<string>('');
   const [selectedTeamB, setSelectedTeamB] = useState<string>('');
   const [selectedVenue, setSelectedVenue] = useState<string>('');
   
-  // Simulation data state
+  // Simulation results
   const [simulationData, setSimulationData] = useState<HistogramDataPoint[]>([]);
-  const [isSimulating, setIsSimulating] = useState(false);
   const [matchDetails, setMatchDetails] = useState<MatchDetails | null>(null);
   const [hasAttemptedSimulation, setHasAttemptedSimulation] = useState(false);
 
+  // App state
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
   const API_BASE_URL = 'http://localhost:8000';
 
+  // Load initial data when component mounts
   useEffect(() => {
     fetchVenues();
     fetchTeams();
   }, []);
 
+// Fetch venues from the API
   const fetchVenues = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/venues`);
       setVenues(response.data);
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch venues';
+      setError(`Unable to load venues: ${errorMessage}`);
       console.error('Error fetching venues:', err);
+    } finally {
+      setIsLoading(false);
     }
   }
 
+// Fetch teams from the API
   const fetchTeams = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/teams`);
       setTeams(response.data);
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch teams';
+      setError(`Unable to load teams: ${errorMessage}`);
       console.error('Error fetching teams:', err);
+    } finally {
+      setIsLoading(false);
     }
   }
 
-  // Check if all dropdowns are selected
+  // Check if user has selected all required options for simulation
   const allOptionsSelected = selectedTeamA && selectedTeamB && selectedVenue;
 
-  // Handle enter button click
+  /**
+   * Run simulation with selected teams and venue
+   * Updates simulation data and match details on success
+   * Sets error state if simulation fails
+   */
   const handleEnterClick = async () => {
     if (allOptionsSelected) {
-      setIsSimulating(true);
-      setHasAttemptedSimulation(true);
+      setError(null);
       try {
         const response = await axios.post(`${API_BASE_URL}/api/simulations/simulate-match`, {
           team_a: parseInt(selectedTeamA),
@@ -72,15 +92,19 @@ function App() {
           home_win_percentage: response.data.home_win_percentage,
           total_simulations: response.data.total_simulations
         });
+        setHasAttemptedSimulation(true);
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Simulation failed';
+        setError(`Simulation failed: ${errorMessage}`);
         console.error('Simulation failed:', error);
-      } finally {
-        setIsSimulating(false);
       }
     }
   };
 
-  // Clear dropdown selections
+  /**
+   * Reset all simulation-related state
+   * Called when switching between views
+   */
   const clearSelections = () => {
     setSelectedTeamA('');
     setSelectedTeamB('');
@@ -88,16 +112,23 @@ function App() {
     setSimulationData([]);
     setMatchDetails(null);
     setHasAttemptedSimulation(false);
+    setError(null);
   };
 
-  // Handle navigation to Historical Games
+  /**
+   * Toggle Historical Games view
+   * Clears simulation data when switching
+   */
   const handleHistoricalGamesClick = () => {
     setShowHistoricalGames(!showHistoricalGames);
     setShowCustomMatchUps(false);
     clearSelections();
   };
 
-  // Handle navigation to Custom Match Ups
+  /**
+   * Toggle Custom Match Ups view
+   * Clears simulation data when switching
+   */
   const handleCustomMatchUpsClick = () => {
     setShowCustomMatchUps(!showCustomMatchUps);
     setShowHistoricalGames(false);
@@ -116,6 +147,16 @@ function App() {
       </header>
       
       <main className="max-w-7xl mx-auto px-6 py-12">
+        {/* Loading State */}
+        {isLoading && (
+          <div className="mb-8 p-6 bg-blue-50 border border-blue-200 rounded-2xl">
+            <div className="flex items-center">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
+              <span className="text-blue-800 font-medium">Loading application data...</span>
+            </div>
+          </div>
+        )}
+
         {/* Navigation buttons */}
         <div className='flex justify-center items-center mb-12 p-6 rounded-2xl bg-white/60 backdrop-blur-sm shadow-lg' style={{ gap: '2rem' }}>
           <button 
@@ -171,7 +212,26 @@ function App() {
               </div>
             </section>
             
-            {/* Enter button - only show when all options are selected */}
+            {/* Error Display */}
+            {error && (
+              <div className="w-full max-w-4xl p-6 bg-red-50 border border-red-200 rounded-2xl">
+                <div className="flex items-center mb-3">
+                  <svg className="w-5 h-5 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-red-800 font-medium">Error</span>
+                </div>
+                <p className="text-red-700 mb-3">{error}</p>
+                <button 
+                  onClick={() => setError(null)}
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+            
+            {/* Simulation button and results */}
             {allOptionsSelected && (
               <div className="w-full flex flex-col items-center">
                 <div className="text-center mb-8">
@@ -185,9 +245,9 @@ function App() {
                 <div className="max-w-4xl w-full">
                   <Histogram 
                     data={simulationData} 
-                    isLoading={isSimulating}
                     matchDetails={matchDetails}
                     hasAttemptedSimulation={hasAttemptedSimulation}
+                    error={error}
                   />
                 </div>
               </div>

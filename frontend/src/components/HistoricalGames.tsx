@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Game } from '../types';
 
+/**
+ * Displays a list of historical games with simulation results,
+ * as we do not have access to real results.
+ * Allows users to view detailed information for each game
+ */
 const HistoricalGames: React.FC = () => {
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
@@ -10,10 +15,12 @@ const HistoricalGames: React.FC = () => {
 
   const API_BASE_URL = 'http://localhost:8000';
 
+  // Load games when component mounts
   useEffect(() => {
     fetchGames();
   }, []);
 
+  // Fetch historical games from the API
   const fetchGames = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/games`);
@@ -27,6 +34,10 @@ const HistoricalGames: React.FC = () => {
     }
   };
 
+  /**
+   * Toggle the detailed view for a specific game
+   * Closes details if same game is clicked again
+   */
   const handleGameClick = (index: number) => {
     if (selectedGameIndex === index) {
       setSelectedGameIndex(null); // Close if same card clicked
@@ -87,16 +98,6 @@ const HistoricalGames: React.FC = () => {
                       day: 'numeric'
                     })}
                   </div>
-                  {game.simulated_home_score !== null && game.simulated_away_score !== null && (
-                    <div className="bg-slate-100 text-slate-700 px-3 py-2 rounded-lg text-sm font-medium mb-2">
-                      Simulated: {game.simulated_home_score} - {game.simulated_away_score}
-                    </div>
-                  )}
-                  {game.home_win_percentage !== null && (
-                    <div className="text-emerald-600 text-sm font-medium">
-                      {game.home_team} wins {game.home_win_percentage}%
-                    </div>
-                  )}
                 </div>
               </div>
               

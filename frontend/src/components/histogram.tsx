@@ -3,23 +3,24 @@ import { HistogramDataPoint, MatchDetails } from '../types';
 
 interface HistogramProps {
   data: HistogramDataPoint[];
-  isLoading?: boolean;
   matchDetails?: MatchDetails | null;
   hasAttemptedSimulation?: boolean;
+  error?: string | null;
 }
 
-export default function Histogram({ data, isLoading, matchDetails, hasAttemptedSimulation }: HistogramProps) {
-  if (isLoading) {
+// Displays simulation results as a histogram
+export default function Histogram({ data, matchDetails, hasAttemptedSimulation, error }: HistogramProps) {
+  // Show error message if simulation failed
+  if (error) {
     return (
-      <div className="flex justify-center items-center py-16">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-600 mx-auto mb-4"></div>
-          <div className="text-slate-600 font-medium">Running simulation...</div>
-        </div>
+      <div className="text-center py-16">
+        <div className="text-red-500 text-lg mb-2">Simulation Error</div>
+        <div className="text-red-400 text-sm">{error}</div>
       </div>
     );
   }
 
+  // Show no data message if simulation was attempted but returned no results
   if (hasAttemptedSimulation && (!data || data.length === 0)) {
     return (
       <div className="text-center py-16">
@@ -29,12 +30,14 @@ export default function Histogram({ data, isLoading, matchDetails, hasAttemptedS
     );
   }
 
+  // Don't show anything on initial load
   if (!data || data.length === 0) {
-    return null; // Don't show anything on initial load
+    return null;
   }
 
   return (
     <div className="w-full">
+      {/* Match details header */}
       {matchDetails && (
         <div className="text-center mb-8 p-6 bg-gradient-to-r from-slate-50 to-gray-50 rounded-2xl">
           <h3 className="text-2xl font-semibold mb-4 text-slate-800">
@@ -56,6 +59,7 @@ export default function Histogram({ data, isLoading, matchDetails, hasAttemptedS
         </div>
       )}
       
+      {/* Visualization of simulation results */}
       <div className="histogram-card">
         <div className="w-full flex justify-center">
           <BarChart width={800} height={400} data={data}>
@@ -96,7 +100,6 @@ export default function Histogram({ data, isLoading, matchDetails, hasAttemptedS
               dataKey="away_team" 
               fill="#10b981" 
               name={`${matchDetails?.team_b} (Away)`}
-              radius={[4, 4, 0, 0]}
             />
           </BarChart>
         </div>

@@ -1,6 +1,4 @@
-/* Modern, clean styles that complement Tailwind */
-
-/* Custom Match Ups Section - Modern card design */
+/* Custom Match Ups Section */
 .custom-matchups-section {
   display: flex !important;
   justify-content: center !important;
@@ -20,7 +18,7 @@
   padding: 0.5rem !important;
 }
 
-/* Histogram card - matching dropdown styling */
+/* Histogram card  */
 .histogram-card {
   background: rgba(255, 255, 255, 0.8) !important;
   backdrop-filter: blur(10px) !important;
@@ -29,7 +27,7 @@
   padding: 2rem !important;
 }
 
-/* Games grid - modern responsive design */
+/* Games grid */
 .games-grid {
   display: grid !important;
   grid-template-columns: repeat(1, 1fr) !important;
