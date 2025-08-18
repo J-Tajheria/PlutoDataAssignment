@@ -42,6 +42,8 @@ PlutoDataAssignment/
 2. Run the start script: `./start.sh`
 3. Open http://localhost:5173 in your browser
 
+**Note:** When running the application, checkout to the `submissionBranch` branch.
+
 ### Manual Setup
 
 #### Backend Setup
